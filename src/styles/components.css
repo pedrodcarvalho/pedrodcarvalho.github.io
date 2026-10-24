@@ -1,0 +1,204 @@
+/* Shared component primitives used across sections. */
+@layer components {
+  .eyebrow {
+    font-family: var(--font-mono-stack);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+  }
+
+  .btn {
+    --btn-bg: var(--bg-elev-2);
+    --btn-fg: var(--fg);
+    --btn-line: var(--line-strong);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55em;
+    min-height: 44px;
+    padding: 0.7em 1.25em;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--btn-line);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: var(--step--1);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      background-color var(--dur) var(--ease-out),
+      border-color var(--dur) var(--ease-out),
+      box-shadow var(--dur) var(--ease-out);
+  }
+  .btn:hover {
+    border-color: var(--fg-subtle);
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+  .btn svg {
+    width: 1.05em;
+    height: 1.05em;
+    flex: none;
+  }
+  .btn--primary {
+    --btn-bg: var(--accent-fill);
+    --btn-fg: var(--on-accent);
+    --btn-line: transparent;
+    font-weight: 600;
+  }
+  .btn--primary:hover {
+    --btn-bg: var(--accent-fill-hover);
+    border-color: transparent;
+    box-shadow: 0 0 0 6px var(--accent-soft);
+  }
+  .btn--ghost {
+    --btn-bg: transparent;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.3em 0.7em;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line);
+    background: var(--bg-elev-1);
+    color: var(--fg-muted);
+    font-family: var(--font-mono-stack);
+    font-size: var(--step--2);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.35em 0.8em 0.35em 0.65em;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line);
+    background: var(--bg-elev-1);
+    font-family: var(--font-mono-stack);
+    font-size: var(--step--2);
+    color: var(--fg-muted);
+  }
+  .badge-live::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 var(--accent-glow);
+    animation: pulse 2.4s var(--ease-out) infinite;
+  }
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 var(--accent-glow);
+    }
+    70%,
+    100% {
+      box-shadow: 0 0 0 8px transparent;
+    }
+  }
+
+  /* Card with a cursor-tracking glow (coordinates set by scripts/spotlight.ts). */
+  .card {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--bg-elev-1);
+    overflow: hidden;
+    transition:
+      border-color var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 50%),
+      var(--accent-soft),
+      transparent 60%
+    );
+    transition: opacity var(--dur) var(--ease-out);
+  }
+  .card:hover {
+    border-color: var(--line-strong);
+  }
+  .card:hover::before {
+    opacity: 1;
+  }
+
+  .section {
+    padding-block: clamp(4.5rem, 2.5rem + 6vw, 7.5rem);
+  }
+  .section + .section {
+    border-top: 1px solid var(--line);
+  }
+  .section-head {
+    display: grid;
+    gap: var(--space-s);
+    margin-bottom: var(--space-xl);
+    max-width: 46rem;
+  }
+  .section-head .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    color: var(--accent);
+  }
+  .section-head .eyebrow::after {
+    content: '';
+    height: 1px;
+    width: 3rem;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .section-title {
+    font-size: var(--step-4);
+  }
+  .section-lede {
+    color: var(--fg-muted);
+    font-size: var(--step-1);
+    line-height: 1.5;
+  }
+
+  .link {
+    color: var(--fg);
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: background-size var(--dur) var(--ease-out);
+  }
+  .link:hover {
+    background-size: 100% 1px;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
+    z-index: 100;
+    translate: -50% 1rem;
+    opacity: 0;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--radius-pill);
+    background: var(--bg-inverse);
+    color: var(--fg-inverse);
+    font-size: var(--step--1);
+    font-weight: 500;
+    pointer-events: none;
+    transition:
+      opacity var(--dur) var(--ease-out),
+      translate var(--dur) var(--ease-out);
+  }
+  .toast[data-open] {
+    opacity: 1;
+    translate: -50% 0;
+  }
+}

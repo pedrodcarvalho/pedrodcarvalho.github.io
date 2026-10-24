@@ -1,0 +1,261 @@
+---
+/**
+ * GitHub Pages serves this for every unknown URL in both languages. Without
+ * inline scripts (CSP) the locale can't be detected, so English leads and a
+ * Portuguese line follows.
+ */
+import Base from '@/layouts/Base.astro';
+import Icon from '@/components/Icon.astro';
+import { dictionaries, htmlLang, localizePath, useTranslations } from '@/i18n';
+import { profile } from '@/data/profile';
+
+const t = useTranslations('en');
+const pt = dictionaries.pt;
+
+/** A carrier wave that decays into a flat line: the "lost signal". */
+const W = 640;
+const MID = 48;
+const wave = Array.from({ length: W / 4 + 1 }, (_, i) => {
+  const x = i * 4;
+  const amp = 30 * Math.max(0, 1 - x / 300) ** 1.6;
+  const y = MID - amp * Math.sin(x / 9) * (0.75 + 0.25 * Math.sin(x / 23));
+  return `${i ? 'L' : 'M'}${x} ${y.toFixed(1)}`;
+}).join('');
+---
+
+<Base
+  locale="en"
+  path="/404"
+  title={`404 · ${t('notFound.title')} | ${profile.name}`}
+  description={t('notFound.lede')}
+  noindex
+>
+  <section class="nf container" aria-labelledby="nf-title">
+    <div class="nf__readout card" aria-hidden="true">
+      <div class="nf__bar mono">
+        <span class="nf__chan">
+          <span class="nf__dot"></span>RX · CH 404
+        </span>
+        <span class="nf__rssi">
+          <span class="nf__bars">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <span class={`nf__b nf__b--${n}`} />
+            ))}
+          </span>
+          −∞ dBm
+        </span>
+      </div>
+      <p class="nf__code mono">404</p>
+      <svg class="nf__wave" viewBox={`-6 0 ${W + 12} 96`} focusable="false">
+        <line class="nf__axis" x1="0" y1={MID} x2={W} y2={MID}></line>
+        <path class="nf__trace" d={wave} pathLength="1"></path>
+        <circle class="nf__end" cx={W - 4} cy={MID} r="4"></circle>
+      </svg>
+      <div class="nf__scale mono">
+        <span>0 ms</span>
+        <span>t</span>
+        <span>∞</span>
+      </div>
+    </div>
+
+    <div class="nf__copy">
+      <h1 id="nf-title" class="nf__title">
+        {t('notFound.title')}
+      </h1>
+      <p class="nf__lede">{t('notFound.lede')}</p>
+      <a class="btn btn--primary" href="/">
+        <Icon name="arrow-left" />
+        {t('notFound.home')}
+      </a>
+
+      <p class="nf__alt" lang={htmlLang.pt}>
+        <strong>{pt['notFound.title']}</strong> {pt['notFound.lede']}{' '}
+        <a class="link nf__alt-link" href={localizePath('/', 'pt')} hreflang={htmlLang.pt}>
+          {pt['notFound.home']}
+          <Icon name="arrow-right" size={14} />
+        </a>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-2xl);
+    padding-block: calc(var(--nav-h) + var(--space-xl)) var(--space-2xl);
+  }
+
+  /* Instrument-style readout. */
+  .nf__readout {
+    display: grid;
+    gap: var(--space-s);
+    padding: var(--space-m);
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 40%, var(--accent-soft), transparent 70%),
+      var(--bg-elev-1);
+  }
+  .nf__bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    color: var(--fg-subtle);
+  }
+  .nf__chan,
+  .nf__rssi {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .nf__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--live);
+    animation: nf-blink 1.6s steps(2, jump-none) infinite;
+  }
+  .nf__bars {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+  }
+  .nf__b {
+    width: 5px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 1px;
+  }
+  .nf__b--1 {
+    height: 30%;
+    border-style: solid;
+    border-color: var(--live);
+  }
+  .nf__b--2 {
+    height: 47%;
+  }
+  .nf__b--3 {
+    height: 64%;
+  }
+  .nf__b--4 {
+    height: 82%;
+  }
+  .nf__b--5 {
+    height: 100%;
+  }
+
+  .nf__code {
+    font-size: clamp(5.5rem, 3rem + 10vw, 10rem);
+    font-weight: 500;
+    line-height: 0.9;
+    letter-spacing: -0.07em;
+    text-align: center;
+    padding-block: var(--space-s) 0;
+    background: linear-gradient(180deg, var(--fg) 30%, var(--fg-subtle));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .nf__wave {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .nf__axis {
+    stroke: var(--line);
+    stroke-dasharray: 2 6;
+  }
+  .nf__trace {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.75;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: nf-draw 2.4s var(--ease-out) 0.2s forwards;
+  }
+  .nf__end {
+    fill: var(--live);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nf-blink 1.6s steps(2, jump-none) infinite;
+  }
+  .nf__scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--step--2);
+    color: var(--fg-subtle);
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-2xs);
+  }
+
+  @keyframes nf-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes nf-blink {
+    50% {
+      opacity: 0.2;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf__trace {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+    .nf__dot,
+    .nf__end {
+      animation: none;
+    }
+  }
+
+  .nf__copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-m);
+  }
+  .nf__title {
+    font-size: var(--step-5);
+    letter-spacing: -0.045em;
+  }
+  .nf__lede {
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--fg-muted);
+    max-width: 34rem;
+  }
+  .nf__alt {
+    margin-top: var(--space-l);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--line);
+    font-size: var(--step--1);
+    color: var(--fg-muted);
+    max-width: 34rem;
+  }
+  .nf__alt strong {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .nf__alt-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    margin-left: 0.25em;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  @media (max-width: 860px) {
+    .nf {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-xl);
+      align-content: center;
+    }
+  }
+</style>

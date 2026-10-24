@@ -1,0 +1,192 @@
+---
+import Icon from './Icon.astro';
+import SectionHead from './SectionHead.astro';
+import V2XDiagram from './V2XDiagram.astro';
+import { useTranslations, type Locale } from '@/i18n';
+import { experience } from '@/data/experience';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section id="experience" class="section" aria-labelledby="experience-title">
+  <div class="container">
+    <SectionHead
+      id="experience-title"
+      eyebrow={t('exp.eyebrow')}
+      title={t('exp.title')}
+      lede={t('exp.lede')}
+    />
+
+    {experience.map((role) => (
+      <article class="role">
+        <header class="role__head" data-reveal>
+          <div class="role__title-wrap">
+            <h3 class="role__title">{role.title[locale]}</h3>
+            <p class="role__company">
+              <a class="link" href={role.companyUrl} target="_blank" rel="noopener">
+                {role.company}
+                <Icon name="arrow-up-right" size={14} />
+                <span class="sr-only">({t('a11y.external')})</span>
+              </a>
+            </p>
+            <p class="role__context">{role.context[locale]}</p>
+          </div>
+          <p class="role__period mono">
+            <time datetime={role.start}>{role.period[locale]}</time>
+            <span class="role__loc">{role.location}</span>
+          </p>
+        </header>
+
+        <div class="role__body">
+          <ol role="list" class="role__highlights">
+            {role.highlights.map((h, i) => (
+              <li
+                class="hl card"
+                tabindex="0"
+                data-nodes={h.nodes.join(' ')}
+                data-reveal
+                aria-describedby="diagram-hint"
+              >
+                <span class="hl__idx mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div class="hl__content">
+                  <h4 class="hl__title">{h.title[locale]}</h4>
+                  <p class="hl__body">{h.body[locale]}</p>
+                  <ul role="list" class="hl__tags">
+                    {h.tags.map((tag) => (
+                      <li class="chip">{tag}</li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <div class="role__diagram" data-reveal>
+            <V2XDiagram locale={locale} title={t('exp.diagramTitle')} />
+            <p id="diagram-hint" class="role__hint">
+              {t('exp.diagramHint')}
+            </p>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .role__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-s) var(--space-l);
+    padding-bottom: var(--space-m);
+    margin-bottom: var(--space-l);
+    border-bottom: 1px solid var(--line);
+  }
+  .role__title {
+    font-size: var(--step-2);
+  }
+  .role__company {
+    margin-top: 0.35rem;
+    font-size: var(--step-1);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .role__company a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    color: inherit;
+  }
+  .role__context {
+    margin-top: 0.35rem;
+    color: var(--fg-muted);
+    font-size: var(--step--1);
+  }
+  .role__period {
+    display: grid;
+    justify-items: end;
+    gap: 0.2rem;
+    font-size: var(--step--1);
+    color: var(--fg);
+  }
+  .role__loc {
+    color: var(--fg-subtle);
+  }
+
+  .role__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: var(--space-l);
+    align-items: start;
+  }
+  .role__highlights {
+    display: grid;
+    gap: var(--space-s);
+  }
+  .role__diagram {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--space-m));
+    display: grid;
+    gap: var(--space-xs);
+  }
+  .role__hint {
+    font-size: var(--step--2);
+    color: var(--fg-subtle);
+  }
+
+  .hl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-s);
+    padding: var(--space-m);
+    border-radius: var(--radius-m);
+    cursor: default;
+    outline-offset: 2px;
+  }
+  .hl[data-active] {
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  .hl__idx {
+    font-size: var(--step--2);
+    color: var(--accent);
+    padding-top: 0.2rem;
+  }
+  .hl__title {
+    font-size: var(--step-0);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .hl__body {
+    margin-top: 0.4rem;
+    color: var(--fg-muted);
+    font-size: var(--step--1);
+    line-height: 1.6;
+  }
+  .hl__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: var(--space-xs);
+  }
+
+  @media (max-width: 1024px) {
+    .role__body {
+      grid-template-columns: 1fr;
+    }
+    .role__diagram {
+      position: static;
+      order: -1;
+    }
+    .role__period {
+      justify-items: start;
+    }
+  }
+</style>

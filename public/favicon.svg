@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<style>
+.f{fill:#171a1f;stroke:rgb(255 255 255/.16)}.p{stroke:#e8eaed}.dot{fill:#3ddccb}
+@media (prefers-color-scheme:light){.f{fill:#fff;stroke:rgb(14 16 19/.18)}.p{stroke:#0e1013}.dot{fill:#0b7a71}}
+</style>
+<rect class="f" x="1" y="1" width="30" height="30" rx="8"/>
+<path class="p" d="M10 22V10h5.5a3.75 3.75 0 0 1 0 7.5H10" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle class="dot" cx="22" cy="21" r="2"/>
+</svg>

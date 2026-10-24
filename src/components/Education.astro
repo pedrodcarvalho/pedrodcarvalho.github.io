@@ -1,0 +1,152 @@
+---
+import Icon from './Icon.astro';
+import SectionHead from './SectionHead.astro';
+import { useTranslations, type Locale } from '@/i18n';
+import { certifications, education } from '@/data/education';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section id="education" class="section" aria-labelledby="education-title">
+  <div class="container">
+    <SectionHead id="education-title" eyebrow={t('edu.eyebrow')} title={t('edu.title')} />
+
+    <ol role="list" class="edu">
+      {education.map((e) => (
+        <li class="edu__item" data-reveal>
+          <span class="edu__icon">
+            <Icon name="graduation" size={20} />
+          </span>
+          <div class="edu__main">
+            <h3 class="edu__degree">{e.degree[locale]}</h3>
+            <p class="edu__school">
+              <a class="link" href={e.url} target="_blank" rel="noopener">
+                {e.school}
+                <span class="sr-only">({t('a11y.external')})</span>
+              </a>
+              <span class="edu__loc"> · {e.location[locale]}</span>
+            </p>
+            {e.note && <p class="edu__note">{e.note[locale]}</p>}
+          </div>
+          <p class="edu__period mono">{e.period[locale]}</p>
+        </li>
+      ))}
+    </ol>
+
+    <h3 class="certs__title" data-reveal>
+      {t('edu.certs')}
+    </h3>
+    <ul role="list" class="certs">
+      {certifications.map((c) => (
+        <li class="cert card" data-reveal>
+          <Icon name="award" size={20} class="cert__icon" />
+          <div>
+            <p class="cert__name">{c.name[locale]}</p>
+            <p class="cert__issuer mono">
+              {c.issuer[locale]} · {c.year}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .edu {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .edu__item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-m);
+    align-items: start;
+    padding-block: var(--space-m);
+    border-bottom: 1px solid var(--line);
+  }
+  .edu__icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg-elev-1);
+    color: var(--accent);
+  }
+  .edu__degree {
+    font-size: var(--step-1);
+  }
+  .edu__school {
+    margin-top: 0.3rem;
+    color: var(--fg);
+  }
+  .edu__loc {
+    color: var(--fg-subtle);
+  }
+  .edu__note {
+    display: inline-block;
+    margin-top: var(--space-xs);
+    padding: 0.3em 0.75em;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+  .edu__period {
+    font-size: var(--step--1);
+    color: var(--fg-muted);
+    white-space: nowrap;
+  }
+
+  .certs__title {
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-m);
+    font-size: var(--step-2);
+  }
+  .certs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-s);
+  }
+  .cert {
+    display: flex;
+    gap: var(--space-s);
+    padding: var(--space-m);
+    border-radius: var(--radius-m);
+  }
+  .cert :global(.cert__icon) {
+    flex: none;
+    color: var(--live);
+    margin-top: 0.15rem;
+  }
+  .cert__name {
+    font-weight: 500;
+    line-height: 1.35;
+  }
+  .cert__issuer {
+    margin-top: 0.35rem;
+    font-size: var(--step--2);
+    color: var(--fg-subtle);
+  }
+
+  @media (max-width: 640px) {
+    .edu__item {
+      grid-template-columns: auto 1fr;
+    }
+    .edu__period {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: start;
+    }
+    .edu__main {
+      grid-column: 2;
+    }
+  }
+</style>

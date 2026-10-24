@@ -1,0 +1,214 @@
+/*
+ * Print: a clean, CV-like document. Light palette, no chrome or motion, every
+ * animated element forced visible, external URLs spelled out.
+ * `!important` is needed to beat scoped component styles and GSAP inline styles.
+ */
+@page {
+  margin: 14mm 14mm 16mm;
+}
+
+@media print {
+  :root,
+  :root[data-theme] {
+    color-scheme: light;
+    --bg: #fff;
+    --bg-elev-1: #fff;
+    --bg-elev-2: #f4f4f2;
+    --bg-inverse: #000;
+    --line: #d9d9d6;
+    --line-strong: #b9b9b5;
+    --fg: #000;
+    --fg-muted: #333;
+    --fg-subtle: #555;
+    --fg-inverse: #fff;
+    --accent: #0b6b63;
+    --accent-strong: #075e57;
+    --accent-soft: transparent;
+    --accent-glow: transparent;
+    --on-accent: #000;
+    --live: #8a4b00;
+    --live-soft: transparent;
+    --dot: transparent;
+    --shadow-lg: none;
+    --nav-h: 0px;
+  }
+
+  html {
+    font-size: 10.5pt;
+    scroll-padding-top: 0;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #000;
+  }
+  body::before {
+    display: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Screen-only chrome. */
+  .nav,
+  .sheet,
+  .palette,
+  dialog,
+  .skip-link,
+  .toast,
+  [data-toast],
+  .hero__canvas,
+  [data-signal-field],
+  .hero__fade,
+  .hero__scroll,
+  .hero__social,
+  .footer__social,
+  .contact__glow,
+  .role__hint,
+  .cs__back,
+  .cs__next,
+  .cs__visual,
+  .pcard__visual,
+  button.btn,
+  [data-copy],
+  [data-theme-toggle],
+  [data-palette-open],
+  [data-menu-open],
+  .btn--primary[href^='#'],
+  .card::before {
+    display: none !important;
+  }
+
+  /* Reveal / intro animations: always visible on paper. */
+  [data-reveal],
+  [data-hero-item],
+  [data-hero-title],
+  [data-hero-title] *,
+  [data-hero-card] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    translate: none !important;
+    scale: none !important;
+    rotate: none !important;
+    filter: none !important;
+    clip-path: none !important;
+  }
+
+  /* Gradient text doesn't print reliably. */
+  .text-gradient,
+  .hero__line--accent,
+  .contact__accent {
+    background: none !important;
+    color: var(--accent) !important;
+    -webkit-text-fill-color: currentColor;
+  }
+
+  /* Layout: flow content, drop viewport-sized sections and sticky bits. */
+  .container {
+    width: 100% !important;
+  }
+  .hero {
+    min-height: 0 !important;
+    padding-block: 0 6mm !important;
+    overflow: visible !important;
+  }
+  .hero__title {
+    font-size: 26pt !important;
+  }
+  .section {
+    padding-block: 8mm 4mm !important;
+  }
+  .section-head {
+    margin-bottom: 5mm !important;
+  }
+  .section-title,
+  .contact__title {
+    font-size: 17pt !important;
+  }
+  .section-lede {
+    font-size: 11pt !important;
+  }
+  .role__diagram {
+    position: static !important;
+  }
+  /* ID card keeps the name/role rows; a portrait (if any) stays small. */
+  .idcard {
+    max-width: 95mm;
+  }
+  .idcard .headshot:not(:has(img)) {
+    display: none !important;
+  }
+  .idcard .headshot {
+    max-width: 30mm;
+  }
+  main {
+    padding: 0 !important;
+  }
+
+  /* Buttons become plain links (CV downloads stay readable). */
+  .btn {
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    color: var(--fg) !important;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .btn svg {
+    display: none !important;
+  }
+  .card {
+    background: #fff !important;
+    border-color: var(--line) !important;
+  }
+
+  /* Spell out external destinations where links carry meaning. */
+  .prose a[href^='http']::after,
+  .contact a[href^='http']::after,
+  .cs__facts a[href^='http']::after,
+  .more a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-family: var(--font-mono-stack);
+    font-size: 0.8em;
+    font-weight: 400;
+    color: var(--fg-subtle);
+    word-break: break-all;
+  }
+
+  /* Pagination. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+  .card,
+  .hl,
+  .role__head,
+  .edu__item,
+  .cert,
+  .skill,
+  .metrics__item,
+  .bento__item,
+  .repo,
+  figure,
+  svg,
+  img,
+  table {
+    break-inside: avoid;
+  }
+}

@@ -1,0 +1,53 @@
+/*
+ * Motion initial states and failsafes (driven by scripts/motion.ts).
+ *
+ * Unlayered on purpose: these rules must beat the layered `.js [data-reveal]`
+ * starting state, while `:where()` keeps the "revealed" rule at zero
+ * specificity so component styles (e.g. hover transforms) still win.
+ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Hero intro starting state. Lifted by `.motion-ready` once GSAP owns it. */
+  .js:not(.motion-ready) :is([data-hero-title], [data-hero-item], [data-hero-card]) {
+    opacity: 0;
+    animation: motion-failsafe 1ms 1.2s forwards;
+  }
+
+  /* Scroll reveals: if motion.ts never takes over, show everything anyway. */
+  .js:not(.motion-ready) [data-reveal] {
+    animation: motion-failsafe 1ms 2.5s forwards;
+  }
+}
+
+@keyframes motion-failsafe {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Final state once an element has been revealed (inline styles are cleared). */
+:where(.js [data-reveal][data-revealed]) {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero canvas fades in on its first frame. */
+.js [data-signal-field] {
+  opacity: 0;
+  transition: opacity 1.4s var(--ease-out);
+}
+.js [data-signal-field][data-ready] {
+  opacity: 1;
+}
+
+@media print {
+  [data-reveal],
+  [data-hero-title],
+  [data-hero-item],
+  [data-hero-card] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}

@@ -1,0 +1,288 @@
+---
+import Icon from './Icon.astro';
+import SectionHead from './SectionHead.astro';
+import ProjectVisual from './ProjectVisual.astro';
+import { localizePath, useTranslations, type Locale } from '@/i18n';
+import { getProjects, projectSlug } from '@/lib/projects';
+import { repos } from '@/data/repos';
+import { profile } from '@/data/profile';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const projects = await getProjects(locale);
+---
+
+<section id="projects" class="section" aria-labelledby="projects-title">
+  <div class="container">
+    <SectionHead
+      id="projects-title"
+      eyebrow={t('projects.eyebrow')}
+      title={t('projects.title')}
+      lede={t('projects.lede')}
+    />
+
+    <ul role="list" class="bento">
+      {projects.map((p, i) => {
+        const href = localizePath(`/projects/${projectSlug(p)}`, locale);
+        const wide = i === 0 || i === 3;
+        return (
+          <li class:list={['bento__item', { 'bento__item--wide': wide }]} data-reveal>
+            <article class="pcard card">
+              <div class="pcard__visual">
+                <ProjectVisual visual={p.data.visual} />
+              </div>
+              <div class="pcard__body">
+                <p class="pcard__meta mono">
+                  {p.data.badge && <span class="pcard__badge">{p.data.badge}</span>}
+                  <span>{p.data.year}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>{p.data.tagline}</span>
+                </p>
+                <h3 class="pcard__title">
+                  <a href={href} class="pcard__link">
+                    {p.data.title}
+                  </a>
+                </h3>
+                <p class="pcard__summary">{p.data.summary}</p>
+                <ul role="list" class="pcard__stack">
+                  {p.data.stack.slice(0, wide ? 7 : 4).map((s) => (
+                    <li class="chip">{s}</li>
+                  ))}
+                </ul>
+                <span class="pcard__cta" aria-hidden="true">
+                  {t('projects.caseStudy')}
+                  <Icon name="arrow-right" size={16} />
+                </span>
+              </div>
+            </article>
+          </li>
+        );
+      })}
+    </ul>
+
+    <div class="more" data-reveal>
+      <div class="more__head">
+        <div>
+          <h3 class="more__title">{t('projects.more')}</h3>
+          <p class="more__lede">{t('projects.moreLede')}</p>
+        </div>
+        <a
+          class="btn btn--ghost"
+          href={`${profile.links.github}?tab=repositories`}
+          target="_blank"
+          rel="noopener"
+        >
+          <Icon name="github" />
+          {t('projects.allRepos')}
+          <span class="sr-only">({t('a11y.external')})</span>
+        </a>
+      </div>
+      <ul role="list" class="more__list">
+        {repos.map((r) => (
+          <li>
+            <a class="repo" href={r.url} target="_blank" rel="noopener">
+              <span class="repo__name mono">{r.name}</span>
+              <span class="repo__desc">{r.description[locale]}</span>
+              <span class="repo__lang mono">{r.language}</span>
+              <Icon name="arrow-up-right" size={16} class="repo__arrow" />
+              <span class="sr-only">({t('a11y.external')})</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-s);
+  }
+  .bento__item--wide {
+    grid-column: span 2;
+  }
+
+  .pcard {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .pcard:hover {
+    transform: translateY(-3px);
+  }
+  .pcard__visual {
+    height: clamp(200px, 12vw + 90px, 270px);
+    border-bottom: 1px solid var(--line);
+  }
+  .pcard__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-m);
+  }
+  .pcard__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--step--2);
+    color: var(--fg-subtle);
+  }
+  .pcard__badge {
+    padding: 0.15em 0.6em;
+    border-radius: var(--radius-pill);
+    background: var(--live-soft);
+    color: var(--live);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .pcard__title {
+    font-size: var(--step-2);
+  }
+  /* Stretched link: the whole card is clickable, but there's one link in the a11y tree. */
+  .pcard__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+  .pcard__link:focus-visible {
+    outline: none;
+  }
+  .pcard:has(.pcard__link:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .pcard__summary {
+    color: var(--fg-muted);
+    font-size: var(--step--1);
+    line-height: 1.6;
+  }
+  .pcard__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: var(--space-2xs);
+  }
+  .pcard__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: var(--space-2xs);
+    font-size: var(--step--1);
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .pcard__cta :global(svg) {
+    transition: transform var(--dur) var(--ease-out);
+  }
+  .pcard:hover .pcard__cta :global(svg) {
+    transform: translateX(4px);
+  }
+
+  .more {
+    margin-top: var(--space-2xl);
+  }
+  .more__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: var(--space-s);
+    margin-bottom: var(--space-m);
+  }
+  .more__title {
+    font-size: var(--step-2);
+  }
+  .more__lede {
+    margin-top: 0.35rem;
+    color: var(--fg-muted);
+    font-size: var(--step--1);
+  }
+  .more__list {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    border-top: 1px solid var(--line);
+  }
+  .more__list > li {
+    display: contents;
+  }
+  .repo {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: center;
+    gap: var(--space-m);
+    padding: var(--space-s) var(--space-2xs);
+    border-bottom: 1px solid var(--line);
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+  .repo:hover {
+    background: var(--bg-elev-1);
+  }
+  .repo__name {
+    font-size: var(--step--1);
+    color: var(--fg);
+    overflow-wrap: anywhere;
+  }
+  .repo__desc {
+    font-size: var(--step--1);
+    color: var(--fg-muted);
+  }
+  .repo__lang {
+    font-size: var(--step--2);
+    color: var(--fg-subtle);
+  }
+  .repo :global(.repo__arrow) {
+    color: var(--fg-subtle);
+    transition:
+      transform var(--dur) var(--ease-out),
+      color var(--dur) var(--ease-out);
+  }
+  .repo:hover :global(.repo__arrow) {
+    color: var(--accent);
+    transform: translate(2px, -2px);
+  }
+
+  @media (max-width: 960px) {
+    .bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .bento__item--wide {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 640px) {
+    .bento {
+      grid-template-columns: 1fr;
+    }
+    .bento__item--wide {
+      grid-column: auto;
+    }
+    .more__list {
+      grid-template-columns: 1fr auto;
+    }
+    .repo {
+      gap: 0.25rem var(--space-s);
+    }
+    .repo__desc {
+      grid-column: 1;
+    }
+    .repo__lang {
+      grid-row: 1;
+      grid-column: 2;
+    }
+    .repo :global(.repo__arrow) {
+      display: none;
+    }
+  }
+</style>

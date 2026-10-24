@@ -1,0 +1,38 @@
+---
+import { profile } from '@/data/profile';
+import { education } from '@/data/education';
+import { experience } from '@/data/experience';
+import { skillGroups } from '@/data/skills';
+import type { Locale } from '@/i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const site = Astro.site?.href ?? 'https://pedrodcarvalho.github.io/';
+const current = experience.find((r) => r.end === null);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  url: site,
+  email: `mailto:${profile.email}`,
+  jobTitle: current?.title[locale] ?? profile.role[locale],
+  description: profile.role[locale],
+  image: new URL('/og/home-en.png', site).href,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Campinas',
+    addressRegion: 'SP',
+    addressCountry: 'BR',
+  },
+  worksFor: current && { '@type': 'Organization', name: current.company, url: current.companyUrl },
+  alumniOf: education.map((e) => ({ '@type': 'CollegeOrUniversity', name: e.school, url: e.url })),
+  knowsAbout: skillGroups.flatMap((g) => g.items).slice(0, 30),
+  knowsLanguage: ['pt-BR', 'en', 'es', 'de'],
+  sameAs: [profile.links.github, profile.links.linkedin],
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

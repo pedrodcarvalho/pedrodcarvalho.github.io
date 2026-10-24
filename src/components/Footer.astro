@@ -1,0 +1,126 @@
+---
+import Icon from './Icon.astro';
+import { useTranslations, type Locale } from '@/i18n';
+import { profile } from '@/data/profile';
+import { formatBuildDate } from '@/lib/format';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const year = new Date(__BUILD_DATE__).getFullYear();
+const commitUrl = `${profile.links.source}/commit/${__COMMIT__}`;
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <p class="footer__built">{t('footer.built')}</p>
+      <p class="footer__stack">{t('footer.stack')}</p>
+    </div>
+
+    <div class="footer__meta mono">
+      <span>© {year}</span>
+      <span aria-hidden="true">·</span>
+      <a class="link" href={profile.links.source} target="_blank" rel="noopener">
+        {t('footer.source')}
+      </a>
+      <span aria-hidden="true">·</span>
+      <span>
+        <span>{t('footer.build')}</span>{' '}
+        {__COMMIT__ === 'dev' ? (
+          <span>dev</span>
+        ) : (
+          <a class="link" href={commitUrl} target="_blank" rel="noopener">
+            {__COMMIT__}
+          </a>
+        )}
+      </span>
+      <span aria-hidden="true">·</span>
+      <time datetime={__BUILD_DATE__}>{formatBuildDate(__BUILD_DATE__, locale)}</time>
+    </div>
+
+    <div class="footer__social">
+      <a
+        class="footer__icon"
+        href={profile.links.github}
+        target="_blank"
+        rel="noopener"
+        aria-label="GitHub"
+      >
+        <Icon name="github" />
+      </a>
+      <a
+        class="footer__icon"
+        href={profile.links.linkedin}
+        target="_blank"
+        rel="noopener"
+        aria-label="LinkedIn"
+      >
+        <Icon name="linkedin" />
+      </a>
+      <a class="footer__icon" href={`mailto:${profile.email}`} aria-label="Email">
+        <Icon name="mail" />
+      </a>
+      <a class="footer__icon" href="#main" aria-label={t('footer.top')} title={t('footer.top')}>
+        <Icon name="arrow-up" />
+      </a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+    padding-block: var(--space-xl) calc(var(--space-xl) + env(safe-area-inset-bottom));
+    font-size: var(--step--1);
+    color: var(--fg-subtle);
+  }
+  .footer__inner {
+    display: grid;
+    gap: var(--space-m);
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+  .footer__built {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .footer__meta {
+    grid-column: 1 / -1;
+    order: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: var(--step--2);
+  }
+  .footer__meta a {
+    color: var(--fg-muted);
+  }
+  .footer__social {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .footer__icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    color: var(--fg-muted);
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+  .footer__icon:hover {
+    color: var(--fg);
+    background: var(--bg-elev-2);
+  }
+  @media (max-width: 640px) {
+    .footer__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

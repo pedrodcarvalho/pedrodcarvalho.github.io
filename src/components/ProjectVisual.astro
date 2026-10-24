@@ -1,0 +1,473 @@
+---
+/**
+ * Illustrations for each project, drawn in the site's visual language.
+ * Each visual has a unique view-transition name so the card morphs into the
+ * case-study header on navigation (native cross-document view transitions).
+ */
+interface Props {
+  visual: 'flora' | 'rfid' | 'snake' | 'compiler';
+  /** Keep animations running (case-study header) instead of only on hover. */
+  live?: boolean;
+  class?: string;
+}
+const { visual, live = false, class: className } = Astro.props;
+
+// Snake: grid cells and a path for the body.
+const cols = 16;
+const rows = 9;
+const cell = 22;
+const gx = (400 - cols * cell) / 2;
+const gy = (240 - rows * cell) / 2;
+const snake: [number, number][] = [
+  [3, 6],
+  [4, 6],
+  [5, 6],
+  [6, 6],
+  [7, 6],
+  [7, 5],
+  [7, 4],
+  [8, 4],
+  [9, 4],
+  [10, 4],
+  [10, 3],
+];
+const food: [number, number] = [10, 1];
+
+// Compiler: AST nodes.
+const ast = [
+  { x: 300, y: 48, t: ':=' },
+  { x: 252, y: 108, t: 'x' },
+  { x: 348, y: 108, t: '+' },
+  { x: 312, y: 168, t: 'y' },
+  { x: 384, y: 168, t: '*' },
+];
+const astEdges: [number, number][] = [
+  [0, 1],
+  [0, 2],
+  [2, 3],
+  [2, 4],
+];
+---
+
+<div class:list={['pv', `pv--${visual}`, { 'pv--live': live }, className]} aria-hidden="true">
+  <svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid meet">
+    {visual === 'flora' && (
+      <g>
+        <g class="pv__waves">
+          <path
+            d="M-440 150 Q -410 120 -380 150 T -320 150 T -260 150 T -200 150 T -140 150 T -80 150 T -20 150 T 40 150 T 100 150 T 160 150 T 220 150 T 280 150 T 340 150 T 400 150 T 460 150 T 520 150 T 580 150 T 640 150 T 700 150 T 760 150 T 820 150 T 880 150"
+            class="pv__wave pv__wave--a"
+          />
+          <path
+            d="M-440 175 Q -410 160 -380 175 T -320 175 T -260 175 T -200 175 T -140 175 T -80 175 T -20 175 T 40 175 T 100 175 T 160 175 T 220 175 T 280 175 T 340 175 T 400 175 T 460 175 T 520 175 T 580 175 T 640 175 T 700 175 T 760 175 T 820 175 T 880 175"
+            class="pv__wave pv__wave--b"
+          />
+          <path
+            d="M-440 200 Q -410 185 -380 200 T -320 200 T -260 200 T -200 200 T -140 200 T -80 200 T -20 200 T 40 200 T 100 200 T 160 200 T 220 200 T 280 200 T 340 200 T 400 200 T 460 200 T 520 200 T 580 200 T 640 200 T 700 200 T 760 200 T 820 200 T 880 200"
+            class="pv__wave pv__wave--c"
+          />
+        </g>
+        <g transform="translate(60 26)">
+          <path d="M60 120 C 10 100 0 40 60 4 C 120 40 110 100 60 120 Z" class="pv__leaf" />
+          <path d="M60 120 V 18 M60 50 L 38 34 M60 72 L 84 52 M60 94 L 40 80" class="pv__vein" />
+        </g>
+        <g class="pv__nn">
+          {[50, 90, 130].map((y) =>
+            [40, 80, 120, 160].map((y2) => <line x1="252" y1={y + 10} x2="306" y2={y2} />),
+          )}
+          {[40, 80, 120, 160].map((y) =>
+            [75, 125].map((y2) => <line x1="306" y1={y} x2="360" y2={y2} />),
+          )}
+          {[60, 100, 140].map((y) => (
+            <circle cx="252" cy={y} r="6" />
+          ))}
+          {[40, 80, 120, 160].map((y) => (
+            <circle cx="306" cy={y} r="6" class="pv__hidden" />
+          ))}
+          <circle cx="360" cy="75" r="7" class="pv__out" />
+          <circle cx="360" cy="125" r="7" />
+        </g>
+        <text x="360" y="58" text-anchor="middle" class="pv__mono">
+          0.94
+        </text>
+      </g>
+    )}
+
+    {visual === 'rfid' && (
+      <g>
+        <g transform="translate(70 70) rotate(-12)">
+          <rect width="150" height="96" rx="10" class="pv__card" />
+          <rect x="18" y="22" width="30" height="24" rx="4" class="pv__chip" />
+          <path d="M18 70 H 110 M18 80 H 80" class="pv__line" />
+        </g>
+        <g class="pv__arcs">
+          <path d="M246 92 a 34 34 0 0 1 0 56" />
+          <path d="M262 76 a 56 56 0 0 1 0 88" />
+          <path d="M278 60 a 78 78 0 0 1 0 120" />
+        </g>
+        <g transform="translate(296 66)">
+          {[0, 1, 2, 3].map((i) => (
+            <g
+              transform={`translate(0 ${i * 28})`}
+              class:list={['pv__row', { 'pv__row--new': i === 0 }]}
+            >
+              <circle cx="8" cy="8" r="5" />
+              <rect x="20" y="4" width="46" height="8" rx="4" />
+              <text x="72" y="12" class="pv__mono pv__mono--s">{`08:0${i}`}</text>
+            </g>
+          ))}
+        </g>
+      </g>
+    )}
+
+    {visual === 'snake' && (
+      <g>
+        <g class="pv__grid">
+          {Array.from({ length: cols * rows }, (_, i) => (
+            <rect
+              x={gx + (i % cols) * cell + 2}
+              y={gy + Math.floor(i / cols) * cell + 2}
+              width={cell - 4}
+              height={cell - 4}
+              rx="3"
+            />
+          ))}
+        </g>
+        <g class="pv__snake">
+          {snake.map(([c, r], i) => (
+            <rect
+              x={gx + c * cell + 2}
+              y={gy + r * cell + 2}
+              width={cell - 4}
+              height={cell - 4}
+              rx="4"
+              class:list={{ pv__head: i === snake.length - 1 }}
+            />
+          ))}
+        </g>
+        <rect
+          x={gx + food[0] * cell + 4}
+          y={gy + food[1] * cell + 4}
+          width={cell - 8}
+          height={cell - 8}
+          rx="7"
+          class="pv__food"
+        />
+        <g class="pv__q pv__mono pv__mono--s">
+          <text x={gx + 10 * cell + 11} y={gy + 2 * cell + 15} text-anchor="middle">
+            0.91
+          </text>
+          <text
+            x={gx + 11 * cell + 11}
+            y={gy + 3 * cell + 15}
+            text-anchor="middle"
+            class="pv__q-low"
+          >
+            0.12
+          </text>
+          <text
+            x={gx + 9 * cell + 11}
+            y={gy + 3 * cell + 15}
+            text-anchor="middle"
+            class="pv__q-low"
+          >
+            0.07
+          </text>
+        </g>
+      </g>
+    )}
+
+    {visual === 'compiler' && (
+      <g>
+        <g class="pv__code pv__mono">
+          <text x="28" y="62">
+            <tspan class="pv__kw">programa</tspan> demo;
+          </text>
+          <text x="28" y="88">
+            <tspan class="pv__kw">var</tspan> x, y: <tspan class="pv__kw">inteiro</tspan>;
+          </text>
+          <text x="28" y="114">
+            <tspan class="pv__kw">inicio</tspan>
+          </text>
+          <text x="44" y="140">
+            x := y + 2 * y;
+          </text>
+          <text x="44" y="166">
+            <tspan class="pv__kw">escreva</tspan>(x)
+          </text>
+          <text x="28" y="192">
+            <tspan class="pv__kw">fim</tspan>.
+          </text>
+          <rect x="40" y="127" width="122" height="20" rx="4" class="pv__sel" />
+        </g>
+        <path d="M184 120 H 222" class="pv__pipe" />
+        <path d="M216 114 L 224 120 L 216 126" class="pv__pipe" />
+        <g class="pv__ast">
+          {astEdges.map(([a, b]) => (
+            <line x1={ast[a]!.x} y1={ast[a]!.y} x2={ast[b]!.x} y2={ast[b]!.y} />
+          ))}
+          {ast.map((n, i) => (
+            <g class:list={{ 'pv__ast-op': i === 0 || i === 2 || i === 4 }}>
+              <circle cx={n.x} cy={n.y} r="17" />
+              <text x={n.x} y={n.y + 5} text-anchor="middle" class="pv__mono">
+                {n.t}
+              </text>
+            </g>
+          ))}
+          <g class="pv__ast-leaves">
+            <line x1="384" y1="168" x2="360" y2="216" />
+            <line x1="384" y1="168" x2="408" y2="216" />
+          </g>
+        </g>
+      </g>
+    )}
+  </svg>
+</div>
+
+<style>
+  .pv {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(ellipse 70% 90% at 70% 25%, var(--accent-soft), transparent 70%),
+      radial-gradient(var(--dot) 0.8px, transparent 0.8px) 0 0 / 14px 14px,
+      var(--bg-elev-2);
+  }
+  .pv svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    font-family: var(--font-mono-stack);
+  }
+  .pv--flora {
+    view-transition-name: pv-flora;
+  }
+  .pv--rfid {
+    view-transition-name: pv-rfid;
+  }
+  .pv--snake {
+    view-transition-name: pv-snake;
+  }
+  .pv--compiler {
+    view-transition-name: pv-compiler;
+  }
+
+  .pv__mono {
+    font-size: 13px;
+    fill: var(--fg-muted);
+  }
+  .pv__mono--s {
+    font-size: 10px;
+  }
+
+  /* Animations run while hovered/focused, or always for live (header) visuals. */
+  .pv * {
+    animation-play-state: paused;
+  }
+  :global(.card:hover) .pv *,
+  :global(.card:focus-within) .pv *,
+  .pv--live * {
+    animation-play-state: running;
+  }
+
+  /* flora */
+  .pv__wave {
+    fill: none;
+    stroke-width: 1.5;
+    animation: wave 4s linear infinite;
+  }
+  .pv__wave--a {
+    stroke: var(--accent);
+  }
+  .pv__wave--b {
+    stroke: var(--live);
+    opacity: 0.7;
+    animation-duration: 5.5s;
+  }
+  .pv__wave--c {
+    stroke: var(--fg-subtle);
+    opacity: 0.6;
+    animation-duration: 7s;
+  }
+  @keyframes wave {
+    to {
+      transform: translateX(-60px);
+    }
+  }
+  .pv__leaf {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1.5;
+  }
+  .pv__vein {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1;
+    opacity: 0.6;
+  }
+  .pv__nn line {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+  }
+  .pv__nn circle {
+    fill: var(--bg);
+    stroke: var(--fg-subtle);
+    stroke-width: 1.5;
+  }
+  .pv__nn .pv__hidden {
+    animation: blinknode 2.4s var(--ease-in-out) infinite;
+  }
+  .pv__nn .pv__hidden:nth-of-type(2n) {
+    animation-delay: 0.6s;
+  }
+  .pv__nn .pv__out {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+  @keyframes blinknode {
+    50% {
+      fill: var(--accent-soft);
+      stroke: var(--accent);
+    }
+  }
+
+  /* rfid */
+  .pv__card {
+    fill: var(--bg-elev-1);
+    stroke: var(--line-strong);
+  }
+  .pv__chip {
+    fill: var(--live-soft);
+    stroke: var(--live);
+  }
+  .pv__line {
+    stroke: var(--line-strong);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .pv__arcs path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    animation: arc 1.8s var(--ease-out) infinite;
+  }
+  .pv__arcs path:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .pv__arcs path:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  @keyframes arc {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+    40% {
+      opacity: 1;
+    }
+  }
+  .pv__row circle {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+  }
+  .pv__row rect {
+    fill: var(--line-strong);
+  }
+  .pv__row--new {
+    animation: rownew 1.8s var(--ease-out) infinite;
+  }
+  @keyframes rownew {
+    0%,
+    30% {
+      opacity: 0.2;
+    }
+    50%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  /* snake */
+  .pv__grid rect {
+    fill: var(--bg);
+    stroke: var(--line);
+  }
+  .pv__snake rect {
+    fill: color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  .pv__snake .pv__head {
+    fill: var(--accent);
+  }
+  .pv__food {
+    fill: var(--live);
+    animation: pulsefood 1.4s var(--ease-in-out) infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes pulsefood {
+    50% {
+      transform: scale(0.75);
+    }
+  }
+  .pv__q text {
+    fill: var(--accent);
+    font-weight: 600;
+  }
+  .pv__q .pv__q-low {
+    fill: var(--fg-subtle);
+    font-weight: 400;
+  }
+
+  /* compiler */
+  .pv__code text {
+    font-size: 12.5px;
+    fill: var(--fg-muted);
+  }
+  .pv__kw {
+    fill: var(--accent);
+  }
+  .pv__sel {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1;
+    animation: sel 2.4s var(--ease-in-out) infinite;
+  }
+  @keyframes sel {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  .pv__pipe {
+    fill: none;
+    stroke: var(--fg-subtle);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  .pv__ast line {
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+  }
+  .pv__ast circle {
+    fill: var(--bg);
+    stroke: var(--fg-subtle);
+    stroke-width: 1.5;
+  }
+  .pv__ast text {
+    fill: var(--fg);
+    font-size: 13px;
+  }
+  .pv__ast-op circle {
+    stroke: var(--accent);
+    fill: var(--accent-soft);
+  }
+  .pv__ast-leaves line {
+    stroke-dasharray: 3 4;
+  }
+</style>

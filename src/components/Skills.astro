@@ -1,0 +1,141 @@
+---
+import Icon from './Icon.astro';
+import SectionHead from './SectionHead.astro';
+import { useTranslations, type Locale } from '@/i18n';
+import { skillGroups, spokenLanguages } from '@/data/skills';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section id="skills" class="section" aria-labelledby="skills-title">
+  <div class="container">
+    <SectionHead
+      id="skills-title"
+      eyebrow={t('skills.eyebrow')}
+      title={t('skills.title')}
+      lede={t('skills.lede')}
+    />
+
+    <div class="skills">
+      {skillGroups.map((g) => (
+        <section class="skill card" aria-labelledby={`skill-${g.id}`} data-reveal>
+          <header class="skill__head">
+            <span class="skill__icon">
+              <Icon name={g.icon} size={20} />
+            </span>
+            <h3 id={`skill-${g.id}`} class="skill__title">
+              {g.title[locale]}
+            </h3>
+            <span class="skill__count mono">{String(g.items.length).padStart(2, '0')}</span>
+          </header>
+          <ul role="list" class="skill__items">
+            {g.items.map((item) => (
+              <li class="chip">{item}</li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      <section class="skill skill--langs card" aria-labelledby="skill-langs" data-reveal>
+        <header class="skill__head">
+          <span class="skill__icon">
+            <Icon name="globe" size={20} />
+          </span>
+          <h3 id="skill-langs" class="skill__title">
+            {t('skills.languages')}
+          </h3>
+        </header>
+        <ul role="list" class="langs">
+          {spokenLanguages[locale].map((lang) => (
+            <li class="langs__item">
+              <span>{lang.name}</span>
+              <span class="langs__level mono">{lang.level}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </div>
+</section>
+
+<style>
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-s);
+  }
+  @media (min-width: 1024px) {
+    .skills {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .skill:first-child {
+      grid-row: span 2;
+    }
+  }
+  .skill {
+    padding: var(--space-m);
+    display: grid;
+    gap: var(--space-m);
+    align-content: start;
+    border-radius: var(--radius-m);
+  }
+  .skill__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .skill__icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .skill__title {
+    font-size: var(--step-1);
+  }
+  .skill__count {
+    margin-left: auto;
+    font-size: var(--step--2);
+    color: var(--fg-subtle);
+  }
+  .skill__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .skill__items .chip {
+    font-size: var(--step--1);
+    color: var(--fg);
+    padding: 0.35em 0.8em;
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  .skill__items .chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .langs {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .langs__item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.55rem 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .langs__level {
+    font-size: var(--step--2);
+    color: var(--fg-subtle);
+    align-self: center;
+  }
+</style>

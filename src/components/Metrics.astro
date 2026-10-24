@@ -1,0 +1,87 @@
+---
+import { useTranslations, type Locale } from '@/i18n';
+import { metrics } from '@/data/profile';
+import { formatNumber } from '@/lib/format';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section id="highlights" class="metrics" aria-label={t('metrics.label')}>
+  <div class="container">
+    <ul role="list" class="metrics__grid">
+      {metrics.map((m) => (
+        <li class="metrics__item" data-reveal>
+          <p class="metrics__value">
+            {m.prefix && <span class="metrics__affix">{m.prefix}</span>}
+            <span
+              data-count={m.value}
+              data-decimals={m.decimals ?? 0}
+              data-locale={locale === 'pt' ? 'pt-BR' : 'en-US'}
+            >
+              {formatNumber(m.value, locale, m.decimals ?? 0)}
+            </span>
+            <span class="metrics__affix">{m.suffix}</span>
+          </p>
+          <p class="metrics__label">{t(m.labelKey)}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .metrics {
+    border-block: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg-elev-1) 60%, transparent);
+  }
+  .metrics__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .metrics__item {
+    padding: var(--space-l) var(--space-m);
+    display: grid;
+    gap: 0.35rem;
+    align-content: start;
+  }
+  .metrics__item + .metrics__item {
+    border-left: 1px solid var(--line);
+  }
+  .metrics__value {
+    font-size: var(--step-4);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .metrics__affix {
+    color: var(--accent);
+  }
+  .metrics__label {
+    font-size: var(--step--1);
+    color: var(--fg-muted);
+    line-height: 1.45;
+    max-width: 16rem;
+  }
+  @media (max-width: 860px) {
+    .metrics__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .metrics__item:nth-child(3) {
+      border-left: 0;
+    }
+    .metrics__item:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+  @media (max-width: 420px) {
+    .metrics__item {
+      padding: var(--space-m) var(--space-s);
+    }
+  }
+</style>

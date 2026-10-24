@@ -1,0 +1,360 @@
+---
+import type { Locale } from '@/i18n';
+import type { DiagramNode } from '@/data/experience';
+
+interface Props {
+  locale: Locale;
+  title: string;
+}
+const { locale, title } = Astro.props;
+const pt = locale === 'pt';
+
+type Box = {
+  id: DiagramNode;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  sub: string;
+};
+
+const inputs: Box[] = [
+  {
+    id: 'can',
+    x: 16,
+    y: 120,
+    w: 132,
+    h: 50,
+    label: 'CAN / OBD-II',
+    sub: pt ? 'velocidade · freio' : 'speed · brake',
+  },
+  { id: 'gnss', x: 16, y: 184, w: 132, h: 50, label: 'GNSS', sub: pt ? 'posição' : 'position' },
+];
+const roadside: Box[] = [
+  {
+    id: 'rsu',
+    x: 572,
+    y: 24,
+    w: 132,
+    h: 50,
+    label: 'RSU',
+    sub: pt ? 'unidade de via' : 'roadside unit',
+  },
+  {
+    id: 'camera',
+    x: 572,
+    y: 92,
+    w: 132,
+    h: 50,
+    label: 'OpenCV · YOLO',
+    sub: pt ? 'pedestres' : 'pedestrians',
+  },
+  {
+    id: 'signal',
+    x: 572,
+    y: 160,
+    w: 132,
+    h: 50,
+    label: 'SPaT / MAP',
+    sub: pt ? 'semáforo' : 'traffic signal',
+  },
+];
+const bench: Box[] = [
+  { id: 'dashboard', x: 28, y: 356, w: 120, h: 50, label: 'Dashboard', sub: 'Flask · React' },
+  { id: 'mqtt', x: 164, y: 356, w: 120, h: 50, label: 'MQTT sim', sub: pt ? 'tráfego' : 'traffic' },
+  {
+    id: 'netem',
+    x: 300,
+    y: 356,
+    w: 120,
+    h: 50,
+    label: 'netem',
+    sub: pt ? 'latência · jitter' : 'latency · jitter',
+  },
+  { id: 'ci', x: 436, y: 356, w: 120, h: 50, label: 'CI/CD', sub: 'Docker · Bash' },
+  {
+    id: 'robot',
+    x: 572,
+    y: 356,
+    w: 120,
+    h: 50,
+    label: 'ROS 2',
+    sub: pt ? 'braço háptico' : 'haptic arm',
+  },
+];
+const vehicles = [
+  { id: 'obu-follow' as const, x: 196, label: 'OBU', sub: pt ? 'seguidor' : 'follower' },
+  { id: 'obu-lead' as const, x: 404, label: 'OBU', sub: pt ? 'líder' : 'leader' },
+];
+---
+
+<figure class="v2x" data-diagram>
+  <figcaption class="v2x__caption eyebrow">{title}</figcaption>
+  <div class="v2x__scroll" tabindex="0" role="region" aria-label={title}>
+    <svg
+      viewBox="0 0 720 424"
+      role="img"
+      aria-label={
+        pt
+          ? 'Diagrama: CAN/OBD-II e GNSS alimentam as unidades embarcadas (OBU) de dois veículos, que trocam mensagens ETSI CAM via C-V2X a mais de 900 m. Uma unidade de beira de via (RSU) gera mensagens SPaT/MAP e detecta pedestres com YOLO. Abaixo, a bancada de testes: dashboard, simulador MQTT, emulação de rede, CI/CD e ROS 2.'
+          : 'Diagram: CAN/OBD-II and GNSS feed the on-board units (OBUs) of two vehicles, which exchange ETSI CAM messages over C-V2X at 900+ m. A roadside unit (RSU) generates SPaT/MAP messages and detects pedestrians with YOLO. Below, the test bench: dashboard, MQTT simulator, network emulation, CI/CD and ROS 2.'
+      }
+    >
+      <defs>
+        <marker
+          id="v2x-arrow"
+          viewBox="0 0 8 8"
+          refX="7"
+          refY="4"
+          markerWidth="7"
+          markerHeight="7"
+          orient="auto-start-reverse"
+        >
+          <path d="M0 0 8 4 0 8z" class="v2x__arrowhead"></path>
+        </marker>
+        <pattern id="v2x-grid" width="16" height="16" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.8" class="v2x__griddot"></circle>
+        </pattern>
+      </defs>
+
+      <rect x="0" y="0" width="720" height="424" fill="url(#v2x-grid)" class="v2x__bg"></rect>
+
+      <!-- Road -->
+      <g class="v2x__road" aria-hidden="true">
+        <rect x="172" y="176" width="384" height="96" rx="10"></rect>
+        <line x1="184" y1="224" x2="544" y2="224" class="v2x__lane"></line>
+      </g>
+
+      <!-- Wires: inputs → follower OBU, RSU → leader -->
+      <g class="v2x__wires" aria-hidden="true">
+        <path
+          d="M148 145 C 176 145 186 196 206 206"
+          data-node="can"
+          marker-end="url(#v2x-arrow)"
+        ></path>
+        <path
+          d="M148 209 C 172 209 184 220 206 222"
+          data-node="gnss"
+          marker-end="url(#v2x-arrow)"
+        ></path>
+        <path d="M638 74 V 92" data-node="camera"></path>
+        <path d="M638 142 V 160" data-node="signal"></path>
+        <path
+          d="M572 49 C 520 49 500 120 484 196"
+          data-node="rsu"
+          class="v2x__radio"
+          marker-end="url(#v2x-arrow)"
+        ></path>
+        <path d="M84 324 H 636" class="v2x__bus"></path>
+        <path d="M364 324 V 272" data-node="netem" class="v2x__radio"></path>
+        <path d="M496 324 V 272" data-node="ci"></path>
+      </g>
+
+      <!-- V2X link between vehicles -->
+      <g class="node node--link" data-node="link">
+        <path d="M268 190 Q 372 96 476 190" class="v2x__link" id="v2x-link-path"></path>
+        <text x="372" y="122" text-anchor="middle" class="v2x__link-label">
+          C-V2X · ETSI CAM
+        </text>
+        <text x="372" y="138" text-anchor="middle" class="v2x__link-sub">
+          900+ m
+        </text>
+        <circle r="4" class="v2x__packet">
+          <animateMotion
+            dur="2.4s"
+            repeatCount="indefinite"
+            path="M268 190 Q 372 96 476 190"
+          ></animateMotion>
+        </circle>
+        <circle r="4" class="v2x__packet v2x__packet--back">
+          <animateMotion
+            dur="2.4s"
+            begin="1.2s"
+            repeatCount="indefinite"
+            keyPoints="1;0"
+            keyTimes="0;1"
+            calcMode="linear"
+            path="M268 190 Q 372 96 476 190"
+          ></animateMotion>
+        </circle>
+      </g>
+
+      {vehicles.map((v) => (
+        <g class="node node--vehicle" data-node={v.id}>
+          <rect x={v.x} y={194} width={128} height={60} rx={14} class="node__box" />
+          <rect x={v.x + 10} y={204} width={22} height={40} rx={5} class="node__glass" />
+          <rect x={v.x + 96} y={204} width={22} height={40} rx={5} class="node__glass" />
+          <text x={v.x + 64} y={221} text-anchor="middle" class="node__label">
+            {v.label}
+          </text>
+          <text x={v.x + 64} y={238} text-anchor="middle" class="node__sub">
+            {v.sub}
+          </text>
+        </g>
+      ))}
+
+      {[...inputs, ...roadside].map((b) => (
+        <g class="node" data-node={b.id}>
+          <rect x={b.x} y={b.y} width={b.w} height={b.h} rx={10} class="node__box" />
+          <text x={b.x + 14} y={b.y + 22} class="node__label">
+            {b.label}
+          </text>
+          <text x={b.x + 14} y={b.y + 38} class="node__sub">
+            {b.sub}
+          </text>
+        </g>
+      ))}
+
+      <text x="16" y="316" class="v2x__group">
+        {pt ? 'BANCADA DE TESTES' : 'TEST BENCH'}
+      </text>
+      {bench.map((b) => (
+        <g class="node" data-node={b.id}>
+          <rect x={b.x} y={b.y} width={b.w} height={b.h} rx={10} class="node__box" />
+          <text x={b.x + 12} y={b.y + 22} class="node__label">
+            {b.label}
+          </text>
+          <text x={b.x + 12} y={b.y + 38} class="node__sub">
+            {b.sub}
+          </text>
+        </g>
+      ))}
+    </svg>
+  </div>
+</figure>
+
+<style>
+  .v2x {
+    display: grid;
+    gap: var(--space-s);
+  }
+  .v2x__scroll {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--bg-elev-1);
+    scrollbar-width: thin;
+  }
+  .v2x svg {
+    min-width: 560px;
+    width: 100%;
+    height: auto;
+    font-family: var(--font-mono-stack);
+  }
+
+  .v2x__griddot {
+    fill: var(--dot);
+  }
+  .v2x__arrowhead {
+    fill: var(--fg-subtle);
+  }
+  .v2x__road rect {
+    fill: var(--bg-elev-2);
+    stroke: var(--line);
+  }
+  .v2x__lane {
+    stroke: var(--line-strong);
+    stroke-dasharray: 14 12;
+    stroke-width: 2;
+  }
+  .v2x__wires path {
+    fill: none;
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+    transition:
+      stroke var(--dur) var(--ease-out),
+      opacity var(--dur) var(--ease-out);
+  }
+  .v2x__wires .v2x__radio {
+    stroke-dasharray: 4 5;
+  }
+  .v2x__wires .v2x__bus {
+    stroke-dasharray: 2 4;
+  }
+  .v2x__group {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    fill: var(--fg-subtle);
+  }
+
+  .v2x__link {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.75;
+    stroke-dasharray: 6 6;
+    animation: dash 1.2s linear infinite;
+  }
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -12;
+    }
+  }
+  .v2x__link-label {
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--accent);
+  }
+  .v2x__link-sub {
+    font-size: 10px;
+    fill: var(--fg-muted);
+  }
+  .v2x__packet {
+    fill: var(--accent);
+  }
+  .v2x__packet--back {
+    fill: var(--live);
+  }
+
+  .node__box {
+    fill: var(--bg);
+    stroke: var(--line-strong);
+    stroke-width: 1;
+    transition:
+      stroke var(--dur) var(--ease-out),
+      fill var(--dur) var(--ease-out);
+  }
+  .node--vehicle .node__box {
+    fill: var(--bg-elev-1);
+  }
+  .node__glass {
+    fill: var(--accent-soft);
+    stroke: var(--line);
+  }
+  .node__label {
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--fg);
+  }
+  .node__sub {
+    font-size: 10px;
+    fill: var(--fg-subtle);
+  }
+  .node {
+    transition: opacity var(--dur) var(--ease-out);
+  }
+
+  /* Focus mode: driven by [data-nodes] highlights (scripts/diagram.ts). */
+  [data-diagram][data-focus] .node:not([data-active]) {
+    opacity: 0.28;
+  }
+  [data-diagram][data-focus] .v2x__wires path:not([data-active]) {
+    opacity: 0.25;
+  }
+  [data-diagram] .node[data-active] .node__box {
+    stroke: var(--accent);
+    fill: var(--accent-soft);
+  }
+  [data-diagram] .v2x__wires path[data-active] {
+    stroke: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .v2x__link {
+      animation: none;
+    }
+    .v2x__packet {
+      display: none;
+    }
+  }
+</style>

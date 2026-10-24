@@ -1,0 +1,80 @@
+---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { profile } from '@/data/profile';
+
+/**
+ * Drop a photo at `src/assets/headshot.(jpg|jpeg|png|webp|avif)` and it is picked up
+ * automatically (optimized to AVIF/WebP). Until then a monogram placeholder is shown.
+ */
+const found = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/headshot.{jpg,jpeg,png,webp,avif}',
+  { eager: true },
+);
+const photo = Object.values(found)[0]?.default;
+
+interface Props {
+  size?: number;
+  loading?: 'eager' | 'lazy';
+}
+const { size = 320, loading = 'eager' } = Astro.props;
+---
+
+<div class="headshot">
+  {photo ? (
+    <Picture
+      src={photo}
+      alt={profile.name}
+      widths={[size, size * 2]}
+      sizes={`${size}px`}
+      formats={['avif', 'webp']}
+      loading={loading}
+      fetchpriority={loading === 'eager' ? 'high' : 'auto'}
+      class="headshot__img"
+    />
+  ) : (
+    <svg class="headshot__placeholder" viewBox="0 0 120 120" role="img" aria-label={profile.name}>
+      <defs>
+        <linearGradient id="hs-g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="var(--bg-elev-2)" />
+          <stop offset="1" stop-color="var(--bg-elev-1)" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#hs-g)" />
+      <circle cx="60" cy="48" r="20" fill="none" stroke="var(--line-strong)" stroke-width="1.5" />
+      <path
+        d="M24 112c4-22 18-34 36-34s32 12 36 34"
+        fill="none"
+        stroke="var(--line-strong)"
+        stroke-width="1.5"
+      />
+      <text x="60" y="54" text-anchor="middle" class="headshot__initials">
+        {profile.initials}
+      </text>
+    </svg>
+  )}
+</div>
+
+<style>
+  .headshot {
+    position: relative;
+    aspect-ratio: 1;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-m);
+    background: var(--bg-elev-2);
+  }
+  .headshot :global(img),
+  .headshot__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .headshot__initials {
+    font-family: var(--font-mono-stack);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    fill: var(--accent);
+  }
+</style>

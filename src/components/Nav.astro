@@ -1,0 +1,426 @@
+---
+import Icon from './Icon.astro';
+import { localizePath, switchLocalePath, htmlLang, useTranslations, type Locale } from '@/i18n';
+import { cvFor, profile } from '@/data/profile';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const home = localizePath('/', locale);
+const other: Locale = locale === 'en' ? 'pt' : 'en';
+// The 404 page has no localized twin, so offer the other locale's home instead.
+const is404 = Astro.url.pathname.replace(/\/$/, '').endsWith('/404');
+const otherHref = is404 ? localizePath('/', other) : switchLocalePath(Astro.url.pathname, other);
+const cv = cvFor(locale);
+
+const sections = [
+  { id: 'experience', label: t('nav.experience') },
+  { id: 'projects', label: t('nav.projects') },
+  { id: 'skills', label: t('nav.skills') },
+  { id: 'education', label: t('nav.education') },
+  { id: 'contact', label: t('nav.contact') },
+] as const;
+---
+
+<header class="nav" data-nav>
+  <div class="nav__inner container">
+    <a class="nav__logo" href={home}>
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+        <rect x="1" y="1" width="30" height="30" rx="8" class="logo-frame"></rect>
+        <path d="M10 22V10h5.5a3.75 3.75 0 0 1 0 7.5H10" class="logo-p"></path>
+        <circle cx="22" cy="21" r="2" class="logo-dot"></circle>
+      </svg>
+      <span class="nav__name">{profile.shortName}</span>
+      <span class="sr-only">, {t('palette.home')}</span>
+    </a>
+
+    <nav class="nav__links" aria-label={t('a11y.primaryNav')}>
+      <ul role="list">
+        {sections.map((s) => (
+          <li>
+            <a href={`${home}#${s.id}`} data-section-link={s.id}>
+              {s.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="nav__actions">
+      <button
+        class="nav__search"
+        type="button"
+        data-palette-open
+        aria-keyshortcuts="Control+K Meta+K"
+      >
+        <Icon name="search" size={15} />
+        <span class="nav__search-label">{t('nav.search')}</span>
+        <kbd class="nav__kbd" data-kbd aria-hidden="true">
+          Ctrl K
+        </kbd>
+      </button>
+      <a
+        class="icon-btn"
+        href={otherHref}
+        hreflang={htmlLang[other]}
+        lang={htmlLang[other]}
+        title={t('lang.switch')}
+      >
+        <span class="mono lang-code">{other.toUpperCase()}</span>
+        <span class="sr-only"> · {t('lang.switch')}</span>
+      </a>
+      <button
+        class="icon-btn"
+        type="button"
+        data-theme-toggle
+        aria-label={t('theme.toggle')}
+        title={t('theme.toggle')}
+      >
+        <Icon name="sun" class="icon-sun" />
+        <Icon name="moon" class="icon-moon" />
+      </button>
+      <a class="btn btn--primary nav__cv" href={cv.href} download>
+        <Icon name="download" size={15} />
+        {t('nav.cv')}
+      </a>
+      <button
+        class="icon-btn nav__menu-btn"
+        type="button"
+        data-menu-open
+        aria-label={t('a11y.menu')}
+        aria-haspopup="dialog"
+      >
+        <Icon name="menu" />
+      </button>
+    </div>
+  </div>
+</header>
+
+<dialog class="sheet" data-menu aria-label={t('a11y.menu')}>
+  <div class="sheet__head">
+    <span class="eyebrow">{t('a11y.menu')}</span>
+    <button class="icon-btn" type="button" data-menu-close aria-label={t('a11y.closeMenu')}>
+      <Icon name="close" />
+    </button>
+  </div>
+  <nav aria-label={t('a11y.primaryNav')}>
+    <ol role="list" class="sheet__links">
+      {sections.map((s, i) => (
+        <li>
+          <a href={`${home}#${s.id}`} data-menu-link>
+            <span class="mono sheet__idx">0{i + 1}</span>
+            {s.label}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+  <div class="sheet__foot">
+    <a class="btn btn--primary" href={cv.href} download>
+      <Icon name="download" size={15} />
+      {t('hero.ctaCv')}
+    </a>
+    <div class="sheet__social">
+      <a
+        class="icon-btn"
+        href={profile.links.github}
+        target="_blank"
+        rel="noopener"
+        aria-label="GitHub"
+      >
+        <Icon name="github" />
+      </a>
+      <a
+        class="icon-btn"
+        href={profile.links.linkedin}
+        target="_blank"
+        rel="noopener"
+        aria-label="LinkedIn"
+      >
+        <Icon name="linkedin" />
+      </a>
+      <a class="icon-btn" href={`mailto:${profile.email}`} aria-label="Email">
+        <Icon name="mail" />
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .nav {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    height: var(--nav-h);
+    padding-top: env(safe-area-inset-top);
+    border-bottom: 1px solid transparent;
+    transition:
+      background-color var(--dur) var(--ease-out),
+      border-color var(--dur) var(--ease-out),
+      backdrop-filter var(--dur) var(--ease-out);
+  }
+  .nav[data-scrolled] {
+    background: var(--nav-bg);
+    border-bottom-color: var(--line);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    backdrop-filter: saturate(160%) blur(14px);
+  }
+  .nav__inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-m);
+  }
+
+  .nav__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    flex: none;
+  }
+  .nav__logo svg {
+    flex: none;
+  }
+  .logo-frame {
+    fill: var(--bg-elev-2);
+    stroke: var(--line-strong);
+  }
+  .logo-p {
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .logo-dot {
+    fill: var(--accent);
+  }
+  .nav__logo:hover .logo-dot {
+    fill: var(--accent-strong);
+  }
+
+  .nav__links {
+    margin-inline: auto;
+  }
+  .nav__links ul {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .nav__links a {
+    position: relative;
+    display: block;
+    padding: 0.45rem 0.8rem;
+    border-radius: var(--radius-pill);
+    font-size: var(--step--1);
+    color: var(--fg-muted);
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+  .nav__links a:hover {
+    color: var(--fg);
+  }
+  .nav__links a[aria-current='true'] {
+    color: var(--fg);
+    background: var(--bg-elev-2);
+  }
+
+  .nav__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+  }
+  .nav__links + .nav__actions {
+    margin-left: 0;
+  }
+
+  .nav__search {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 36px;
+    padding: 0 0.5rem 0 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--bg-elev-1);
+    color: var(--fg-subtle);
+    font-size: var(--step--1);
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .nav__search:hover {
+    border-color: var(--line-strong);
+    color: var(--fg-muted);
+  }
+  /* Visually hidden (not display:none) so the button keeps its accessible name. */
+  .nav__search-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .nav__kbd {
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    font-size: 0.7rem;
+    color: var(--fg-subtle);
+    background: var(--bg);
+  }
+
+  .icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    color: var(--fg-muted);
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+  .icon-btn:hover {
+    color: var(--fg);
+    background: var(--bg-elev-2);
+  }
+  .lang-code {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* Theme toggle shows the icon of the theme you'd switch to. */
+  .icon-btn :global(.icon-moon) {
+    display: none;
+  }
+  :global(:root[data-theme='light']) .icon-btn :global(.icon-sun) {
+    display: none;
+  }
+  :global(:root[data-theme='light']) .icon-btn :global(.icon-moon) {
+    display: block;
+  }
+
+  .nav__cv {
+    min-height: 36px;
+    padding: 0.45em 1em;
+  }
+  .nav__menu-btn {
+    display: none;
+  }
+
+  @media (min-width: 1180px) {
+    .nav__search-label {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+      min-width: 9.5rem;
+      text-align: left;
+    }
+  }
+  @media (max-width: 960px) {
+    .nav__links,
+    .nav__cv {
+      display: none;
+    }
+    .nav__menu-btn {
+      display: inline-grid;
+    }
+  }
+  @media (max-width: 420px) {
+    .nav__name {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .nav__kbd {
+      display: none;
+    }
+    .nav__search {
+      width: 40px;
+      padding: 0;
+      justify-content: center;
+      border-color: transparent;
+      background: transparent;
+    }
+  }
+
+  /* Mobile menu sheet (native <dialog>: focus trap + Esc for free). */
+  .sheet {
+    position: fixed;
+    inset: 0 0 auto auto;
+    width: min(100vw, 26rem);
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: calc(1rem + env(safe-area-inset-top)) var(--gutter)
+      calc(1.5rem + env(safe-area-inset-bottom));
+    border: 0;
+    border-left: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--fg);
+    display: none;
+    flex-direction: column;
+    gap: var(--space-l);
+  }
+  .sheet[open] {
+    display: flex;
+    animation: sheet-in var(--dur) var(--ease-out);
+  }
+  .sheet::backdrop {
+    background: rgb(0 0 0 / 0.5);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  @keyframes sheet-in {
+    from {
+      translate: 100% 0;
+    }
+  }
+  .sheet__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sheet__links {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .sheet__links a {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    font-size: var(--step-3);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    border-bottom: 1px solid var(--line);
+  }
+  .sheet__idx {
+    font-size: var(--step--2);
+    color: var(--accent);
+    font-weight: 400;
+  }
+  .sheet__foot {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .sheet__social {
+    display: flex;
+  }
+</style>

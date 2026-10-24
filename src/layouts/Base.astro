@@ -1,0 +1,123 @@
+---
+import '@/styles/tokens.css';
+import '@/styles/base.css';
+import '@/styles/components.css';
+import '@/styles/motion.css';
+import '@/styles/print.css';
+import { Font } from 'astro:assets';
+import SEO from '@/components/SEO.astro';
+import Nav from '@/components/Nav.astro';
+import Footer from '@/components/Footer.astro';
+import CommandPalette from '@/components/CommandPalette.astro';
+import { htmlLang, useTranslations, type Locale } from '@/i18n';
+
+interface Props {
+  locale: Locale;
+  /** Locale-independent path used for canonical and hreflang URLs. */
+  path: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  type?: 'website' | 'article' | 'profile';
+  noindex?: boolean;
+}
+
+const { locale, path, title, description, image, imageAlt, type, noindex } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<!doctype html>
+<html lang={htmlLang[locale]} dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Runs before first paint: enables JS-only styles and applies the saved theme (dark by default). -->
+    <script is:inline>
+      {
+        const d = document.documentElement;
+        d.classList.add('js');
+        let t = 'dark';
+        try {
+          const s = localStorage.getItem('theme');
+          if (s === 'light' || s === 'dark') t = s;
+        } catch {
+          // Storage blocked (private mode, sandbox): keep the default theme.
+        }
+        d.dataset.theme = t;
+      }
+    </script>
+    <SEO
+      locale={locale}
+      path={path}
+      title={title ?? t('meta.title')}
+      description={description ?? t('meta.description')}
+      image={image}
+      imageAlt={imageAlt}
+      type={type}
+      noindex={noindex}
+    />
+    <meta name="theme-color" content="#0a0b0d" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <Font cssVariable="--font-sans" preload />
+    <Font cssVariable="--font-mono" />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      {t('a11y.skip')}
+    </a>
+    <Nav locale={locale} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer locale={locale} />
+    <CommandPalette locale={locale} />
+    <div class="toast" role="status" aria-live="polite" data-toast></div>
+    <script>
+      import '@/scripts/app.ts';
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 380ms;
+    animation-timing-function: var(--ease-out);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    @view-transition {
+      navigation: none;
+    }
+  }
+
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 200;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-s);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+    translate: 0 -200%;
+    transition: translate var(--dur) var(--ease-out);
+  }
+  .skip-link:focus-visible {
+    translate: 0 0;
+  }
+  main:focus {
+    outline: none;
+  }
+</style>

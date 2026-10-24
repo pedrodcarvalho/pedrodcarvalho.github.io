@@ -1,0 +1,498 @@
+---
+/**
+ * Command palette (⌘K / Ctrl+K). Options are rendered here and described with
+ * data attributes so scripts/palette.ts stays generic:
+ *   data-href       navigate (same-page hashes scroll in place)
+ *   data-external   open data-href in a new tab
+ *   data-action     "theme" | "copy-email" | "download-cv"
+ *   data-keywords   extra search terms (other-locale labels, stack, …)
+ */
+import type { ComponentProps } from 'astro/types';
+import Icon from './Icon.astro';
+import {
+  dictionaries,
+  localizePath,
+  switchLocalePath,
+  useTranslations,
+  type Locale,
+  type UIKey,
+} from '@/i18n';
+import { cvFor, profile } from '@/data/profile';
+import { getProjects, projectSlug } from '@/lib/projects';
+
+interface Props {
+  locale: Locale;
+}
+
+type IconName = ComponentProps<typeof Icon>['name'];
+type Option = {
+  label: string;
+  icon: IconName;
+  meta?: string;
+  keywords?: string;
+  href?: string;
+  external?: boolean;
+  action?: 'theme' | 'copy-email' | 'download-cv';
+  value?: string;
+};
+type Group = { id: string; label: string; options: Option[] };
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const other: Locale = locale === 'en' ? 'pt' : 'en';
+const home = localizePath('/', locale);
+const cv = cvFor(locale);
+const projects = await getProjects(locale);
+// The 404 page has no translated twin: send the other language to its home.
+const langHref = /\/404(\.html)?\/?$/.test(Astro.url.pathname)
+  ? localizePath('/', other)
+  : switchLocalePath(Astro.url.pathname, other);
+
+/** Labels in every locale, so searching in either language works. */
+const both = (...keys: UIKey[]) =>
+  keys.flatMap((k) => Object.values(dictionaries).map((d) => d[k])).join(' ');
+
+const sections = [
+  ['experience', 'nav.experience', 'chip'],
+  ['projects', 'nav.projects', 'code'],
+  ['skills', 'nav.skills', 'brain'],
+  ['education', 'nav.education', 'graduation'],
+  ['contact', 'nav.contact', 'mail'],
+] as const satisfies readonly (readonly [string, UIKey, IconName])[];
+
+const urlLabel = (href: string) => href.replace(/^https?:\/\/(www\.)?/, '');
+
+const groups: Group[] = [
+  {
+    id: 'nav',
+    label: t('palette.groupNav'),
+    options: [
+      { label: t('palette.home'), icon: 'arrow-right', href: home, keywords: both('palette.home') },
+      ...sections.map(([id, key, icon]) => ({
+        label: t(key),
+        icon,
+        href: `${home}#${id}`,
+        meta: `#${id}`,
+        keywords: both(key),
+      })),
+      ...projects.map((p) => ({
+        label: p.data.title,
+        icon: 'file' as const,
+        meta: p.data.tagline,
+        href: localizePath(`/projects/${projectSlug(p)}`, locale),
+        keywords: [p.data.tagline, ...p.data.stack, both('nav.projects')].join(' '),
+      })),
+    ],
+  },
+  {
+    id: 'actions',
+    label: t('palette.groupActions'),
+    options: [
+      {
+        label: t('theme.toggle'),
+        icon: 'sun',
+        action: 'theme',
+        keywords: both('theme.dark', 'theme.light', 'theme.toggle'),
+      },
+      {
+        label: t('lang.switch'),
+        icon: 'globe',
+        meta: other.toUpperCase(),
+        href: langHref,
+        keywords: both('lang.label', 'lang.switch'),
+      },
+      {
+        label: t('contact.copy'),
+        icon: 'copy',
+        meta: profile.email,
+        action: 'copy-email',
+        value: profile.email,
+        keywords: both('contact.copy'),
+      },
+      {
+        label: t('hero.ctaCv'),
+        icon: 'download',
+        meta: 'PDF',
+        action: 'download-cv',
+        href: cv.href,
+        keywords: both('hero.ctaCv', 'nav.cv') + ' cv resume résumé currículo',
+      },
+    ],
+  },
+  {
+    id: 'links',
+    label: t('palette.groupLinks'),
+    options: [
+      {
+        label: 'GitHub',
+        icon: 'github',
+        meta: urlLabel(profile.links.github),
+        href: profile.links.github,
+        external: true,
+      },
+      {
+        label: 'LinkedIn',
+        icon: 'linkedin',
+        meta: urlLabel(profile.links.linkedin),
+        href: profile.links.linkedin,
+        external: true,
+      },
+      {
+        label: 'Email',
+        icon: 'mail',
+        meta: profile.email,
+        href: `mailto:${profile.email}`,
+        keywords: 'e-mail mail',
+      },
+    ],
+  },
+];
+
+let n = 0;
+---
+
+<dialog
+  class="palette"
+  aria-label={t('palette.title')}
+  data-palette
+  data-copied-label={t('contact.copied')}
+  data-empty-label={t('palette.empty')}
+  data-results-label={t('palette.results')}
+  data-result-label={t('palette.result')}
+>
+  <div class="palette__panel">
+    <div class="palette__search">
+      <Icon name="search" size={18} class="palette__search-icon" />
+      <input
+        class="palette__input"
+        type="text"
+        role="combobox"
+        aria-label={t('palette.title')}
+        aria-expanded="true"
+        aria-controls="palette-list"
+        aria-autocomplete="list"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="go"
+        placeholder={t('palette.placeholder')}
+        data-palette-input
+      />
+      <button
+        class="palette__esc mono"
+        type="button"
+        aria-label={t('palette.closeLabel')}
+        data-palette-close
+      >
+        esc
+      </button>
+    </div>
+
+    <div class="palette__list" id="palette-list" role="listbox" aria-label={t('palette.title')}>
+      {groups.map((g) => (
+        <ul
+          class="palette__group"
+          role="group"
+          aria-labelledby={`palette-g-${g.id}`}
+          data-palette-group
+        >
+          <li class="palette__group-label eyebrow" id={`palette-g-${g.id}`} role="presentation">
+            {g.label}
+          </li>
+          {g.options.map((o) => (
+            <li
+              class="palette__option"
+              id={`palette-o-${n++}`}
+              role="option"
+              aria-selected="false"
+              data-palette-option
+              data-href={o.href}
+              data-external={o.external ? '' : undefined}
+              data-action={o.action}
+              data-value={o.value}
+              data-keywords={o.keywords}
+            >
+              <span class="palette__icon">
+                <Icon name={o.icon} size={16} />
+              </span>
+              <span class="palette__label" data-palette-label>
+                {o.label}
+              </span>
+              {o.meta && <span class="palette__meta">{o.meta}</span>}
+              {o.external && <Icon name="arrow-up-right" size={14} class="palette__ext" />}
+              <kbd class="palette__enter mono" aria-hidden="true">
+                ↵
+              </kbd>
+            </li>
+          ))}
+        </ul>
+      ))}
+      <p class="palette__empty" hidden data-palette-empty>
+        {t('palette.empty')}
+      </p>
+    </div>
+
+    <div class="palette__foot mono" aria-hidden="true">
+      <span>
+        <kbd>↑</kbd>
+        <kbd>↓</kbd> {t('palette.navigate')}
+      </span>
+      <span>
+        <kbd>↵</kbd> {t('palette.select')}
+      </span>
+      <span>
+        <kbd>esc</kbd> {t('palette.close')}
+      </span>
+    </div>
+    <p class="sr-only" role="status" aria-live="polite" data-palette-status></p>
+  </div>
+</dialog>
+
+<style>
+  .palette {
+    position: fixed;
+    inset: 15vh 0 auto;
+    width: min(640px, 100% - 2rem);
+    max-width: none;
+    max-height: min(560px, 75dvh);
+    margin: 0 auto;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-l);
+    background: var(--bg-elev-1);
+    color: var(--fg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .palette[open] {
+    display: flex;
+    animation: palette-in 200ms var(--ease-out);
+  }
+  .palette::backdrop {
+    background: rgb(0 0 0 / 0.45);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .palette[open]::backdrop {
+    animation: palette-fade 200ms var(--ease-out);
+  }
+  @keyframes palette-in {
+    from {
+      opacity: 0;
+      transform: scale(0.98) translateY(-4px);
+    }
+  }
+  @keyframes palette-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .palette[open],
+    .palette[open]::backdrop {
+      animation: none;
+    }
+  }
+
+  .palette__panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .palette__search {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 0.75rem 0 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .palette__search :global(.palette__search-icon) {
+    flex: none;
+    color: var(--fg-subtle);
+  }
+  .palette__input {
+    flex: 1;
+    min-width: 0;
+    height: 56px;
+    border: 0;
+    background: transparent;
+    font-size: var(--step-0);
+    color: var(--fg);
+    outline: none;
+  }
+  .palette__input::placeholder {
+    color: var(--fg-subtle);
+    opacity: 1;
+  }
+  .palette__input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .palette__esc {
+    flex: none;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 0.7rem;
+    color: var(--fg-subtle);
+    background: var(--bg);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .palette__esc:hover {
+    color: var(--fg);
+  }
+
+  .palette__list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+    padding: 0.5rem;
+    scroll-padding-block: 2.25rem 0.5rem;
+  }
+  .palette__group {
+    list-style: none;
+    padding: 0;
+  }
+  .palette__group + .palette__group {
+    margin-top: 0.35rem;
+  }
+  .palette__group-label {
+    padding: 0.6rem 0.75rem 0.4rem;
+    font-size: 0.68rem;
+  }
+
+  .palette__option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-m);
+    color: var(--fg-muted);
+    font-size: var(--step--1);
+    cursor: pointer;
+    user-select: none;
+  }
+  .palette__option[aria-selected='true'] {
+    background: var(--bg-elev-2);
+    color: var(--fg);
+  }
+  .palette__option[aria-selected='true']::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 2px;
+    height: 1.25rem;
+    translate: 0 -50%;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .palette__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--fg-subtle);
+  }
+  .palette__option[aria-selected='true'] .palette__icon {
+    color: var(--accent);
+    border-color: var(--line-strong);
+  }
+  .palette__label {
+    flex: none;
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .palette__meta {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: var(--font-mono-stack);
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+  }
+  .palette__option :global(.palette__ext) {
+    flex: none;
+    color: var(--fg-subtle);
+  }
+  .palette__enter {
+    flex: none;
+    margin-left: auto;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+    visibility: hidden;
+  }
+  .palette__option[aria-selected='true'] .palette__enter {
+    visibility: visible;
+  }
+
+  .palette__empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--fg-muted);
+    font-size: var(--step--1);
+  }
+
+  .palette__foot {
+    display: flex;
+    gap: 1.25rem;
+    padding: 0.65rem 1.1rem;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+    font-size: 0.72rem;
+    color: var(--fg-subtle);
+  }
+  .palette__foot kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    margin-right: 0.2rem;
+    padding: 0 0.3rem;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--bg-elev-1);
+    font-size: 0.7rem;
+  }
+
+  /* Sections focused after a jump shouldn't get a giant focus ring. */
+  :global([data-palette-focus]:focus) {
+    outline: none;
+  }
+
+  @media (max-width: 640px) {
+    .palette {
+      inset-block-start: max(0.75rem, env(safe-area-inset-top));
+      width: calc(100% - 1.5rem);
+      max-height: min(560px, 80dvh);
+    }
+    .palette__foot {
+      display: none;
+    }
+    .palette__esc {
+      min-width: 44px;
+      min-height: 36px;
+    }
+    .palette__meta {
+      display: none;
+    }
+    .palette__option {
+      min-height: 48px;
+    }
+  }
+</style>

@@ -1,0 +1,334 @@
+---
+import Icon from './Icon.astro';
+import Headshot from './Headshot.astro';
+import { useTranslations, type Locale } from '@/i18n';
+import { cvFor, profile } from '@/data/profile';
+import { experience } from '@/data/experience';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const cv = cvFor(locale);
+const role = experience[0]!;
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <canvas
+    class="hero__canvas"
+    data-signal-field
+    role="img"
+    aria-label={t('hero.canvasLabel')}
+  ></canvas>
+  <div class="hero__fade" aria-hidden="true"></div>
+
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <p class="badge-live" data-hero-item>
+        {t('hero.status')}
+      </p>
+
+      <h1 id="hero-title" class="hero__title" data-hero-title>
+        <span class="hero__line">{t('hero.title.a')}</span>
+        <span class="hero__line hero__line--accent">{t('hero.title.b')}</span>
+      </h1>
+
+      <p class="hero__kicker mono" data-hero-item>
+        {t('hero.kicker')}
+      </p>
+      <p class="hero__lede" data-hero-item>
+        {t('hero.lede')}
+      </p>
+
+      <div class="hero__ctas" data-hero-item>
+        <a class="btn btn--primary" href="#projects">
+          {t('hero.ctaWork')}
+          <Icon name="arrow-right" />
+        </a>
+        <a class="btn" href={cv.href} download>
+          <Icon name="download" />
+          {t('hero.ctaCv')}
+        </a>
+        <div class="hero__social">
+          <a
+            class="hero__icon"
+            href={profile.links.linkedin}
+            target="_blank"
+            rel="noopener"
+            aria-label="LinkedIn"
+          >
+            <Icon name="linkedin" size={20} />
+          </a>
+          <a
+            class="hero__icon"
+            href={profile.links.github}
+            target="_blank"
+            rel="noopener"
+            aria-label="GitHub"
+          >
+            <Icon name="github" size={20} />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <aside class="idcard card" data-hero-card aria-label={profile.name}>
+      <div class="idcard__top mono">
+        <span>ID · {profile.initials}</span>
+        <span class="idcard__live">
+          <span class="idcard__dot" aria-hidden="true"></span>ONLINE
+        </span>
+      </div>
+      <Headshot size={300} />
+      <dl class="idcard__rows mono">
+        <div>
+          <dt>NAME</dt>
+          <dd>{profile.name}</dd>
+        </div>
+        <div>
+          <dt>ROLE</dt>
+          <dd>{role.title[locale]}</dd>
+        </div>
+        <div>
+          <dt>ORG</dt>
+          <dd>Eldorado · V2X Lab</dd>
+        </div>
+        <div>
+          <dt>LOC</dt>
+          <dd>
+            Campinas, BR · <time data-local-clock>--:--</time>
+          </dd>
+        </div>
+      </dl>
+    </aside>
+  </div>
+
+  <a class="hero__scroll mono" href="#highlights" aria-hidden="true" tabindex="-1">
+    <span>{t('hero.scroll')}</span>
+    <span class="hero__scroll-line"></span>
+  </a>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-items: center;
+    padding-block: calc(var(--nav-h) + var(--space-2xl)) var(--space-3xl);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .hero__canvas {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+  }
+  .hero__fade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 70% at 25% 50%, var(--bg) 20%, transparent 75%),
+      linear-gradient(to bottom, transparent 60%, var(--bg));
+  }
+
+  .hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+    gap: var(--space-2xl);
+    align-items: center;
+  }
+  .hero__copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-m);
+  }
+
+  .hero__title {
+    font-size: var(--step-5);
+    font-weight: 650;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+    margin-top: var(--space-2xs);
+  }
+  .hero__line {
+    display: block;
+  }
+  .hero__line--accent {
+    background: linear-gradient(95deg, var(--accent) 0%, var(--accent-strong) 45%, var(--fg) 110%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-bottom: 0.08em;
+  }
+
+  .hero__kicker {
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .hero__lede {
+    max-width: 36rem;
+    color: var(--fg-muted);
+    font-size: clamp(1.05rem, 1rem + 0.3vw, 1.25rem);
+    line-height: 1.55;
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+  }
+  .hero__social {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: var(--space-2xs);
+  }
+  .hero__icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-pill);
+    color: var(--fg-muted);
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+  .hero__icon:hover {
+    color: var(--fg);
+    background: var(--bg-elev-2);
+  }
+
+  /* ID card */
+  .idcard {
+    padding: var(--space-s);
+    display: grid;
+    gap: var(--space-s);
+    background: color-mix(in srgb, var(--bg-elev-1) 82%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-lg);
+    max-width: 22rem;
+    justify-self: end;
+    width: 100%;
+  }
+  .idcard__top {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--step--2);
+    color: var(--fg-subtle);
+    letter-spacing: 0.08em;
+  }
+  .idcard__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    color: var(--accent);
+  }
+  .idcard__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: blink 1.6s steps(2, jump-none) infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  .idcard__rows {
+    display: grid;
+    gap: 0.45rem;
+    font-size: var(--step--2);
+  }
+  .idcard__rows div {
+    display: grid;
+    grid-template-columns: 3.2rem 1fr;
+    gap: 0.5rem;
+    padding-top: 0.45rem;
+    border-top: 1px dashed var(--line);
+  }
+  .idcard__rows dt {
+    color: var(--fg-subtle);
+    letter-spacing: 0.08em;
+  }
+  .idcard__rows dd {
+    color: var(--fg);
+  }
+
+  .hero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: var(--space-l);
+    translate: -50% 0;
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    font-size: var(--step--2);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+  }
+  .hero__scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--fg-subtle), transparent);
+    transform-origin: top;
+    animation: scroll-line 2.2s var(--ease-in-out) infinite;
+  }
+  @keyframes scroll-line {
+    0% {
+      transform: scaleY(0);
+    }
+    50% {
+      transform: scaleY(1);
+      transform-origin: top;
+    }
+    51% {
+      transform-origin: bottom;
+    }
+    100% {
+      transform: scaleY(0);
+      transform-origin: bottom;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .hero__grid {
+      grid-template-columns: 1fr;
+    }
+    .idcard {
+      justify-self: start;
+      max-width: 26rem;
+    }
+    .hero__scroll {
+      display: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .idcard {
+      grid-template-columns: 6.5rem 1fr;
+      align-items: start;
+    }
+    .idcard__top {
+      grid-column: 1 / -1;
+    }
+    .idcard__rows dd {
+      overflow-wrap: anywhere;
+    }
+    /* At thumbnail size, frame the face rather than the full pose. */
+    .idcard :global(.headshot img) {
+      transform: scale(1.6);
+      transform-origin: 50% 8%;
+    }
+  }
+</style>
